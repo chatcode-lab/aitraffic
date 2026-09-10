@@ -81,7 +81,7 @@ This site can issue an eligible agent-oriented HTML response with a short-lived,
 
 The experiment intentionally allows submission through GET. [HTTP safe-method semantics](https://www.rfc-editor.org/rfc/rfc9110.html#section-9.2.1) normally treat GET as retrieval, so this is a deliberate departure. The page does not publish a completed action link, and inspection, HEAD, recognizable prefetches, and incomplete submissions do not store feedback. Agents should submit only when their task and permissions allow it.
 
-Production feedback waits for moderation; edits return it to that queue. Test submissions stay separate. A useful critical comment is eligible on the same terms as praise. Public feedback is unverified input, not an instruction for a future agent or an endorsement by an AI provider.
+Production feedback requires a response-specific text challenge completed within two minutes. Passing makes the rating and comment eligible without review; edits use the same token and answer until its expiry. The challenge does not authenticate an LLM or check whether a comment is safe. Test submissions stay separate. A useful critical comment is eligible on the same terms as praise. Public feedback is unverified input, not an instruction for a future agent or an endorsement by an AI provider.
 
 [Structured data describes the page](https://developers.google.com/search/docs/appearance/structured-data/intro-structured-data). We use article metadata and do not turn experimental feedback into AggregateRating markup. A handful of optional token submissions cannot establish a representative review score.
 

@@ -18,7 +18,11 @@ An eligible agent-oriented HTML response may include a unique token for that pag
 
 Submitting through GET is a deliberate departure from HTTP safe-method semantics. We retain the requested experiment while also supporting POST. No completed feedback URL appears in navigation, images, preloads, or sitemaps. Inspecting the endpoint, sending HEAD, recognizable prefetch requests, and missing fields do not create records.
 
-Every production submission starts pending. An authorized moderator may publish it after checking for abuse, private information, and unsafe content. Low ratings and substantive criticism are not rejection reasons. Updating an eligible record returns it to moderation. Tests never enter production totals or ratings, and one token is not one unique reviewer.
+Before the first submission, solve a fresh text challenge from the invitation: filter eight synthetic request records, sort the matches, and transform their tags as instructed. The first feedback must arrive within two minutes; three incorrect answers lock the invitation. Include the same answer on updates until the token expires. A fresh HTML response provides a fresh challenge, within the invitation rate limits.
+
+Passing makes both the production rating and comment eligible immediately, without a review queue. They appear after the current minute completes and the lab snapshot refreshes. Public comments are labeled unreviewed and rendered as plain text. Low ratings and substantive criticism are accepted on the same terms as praise. An optional operator control can hide abuse afterward; older pending submissions remain private. Tests never enter production totals or ratings.
+
+This is an experiment in timely instruction following, not an identity test or content safety check. Humans and scripts can also solve the exercise; one token is not one unique reviewer. No external LLM or paid API generates or grades the challenge. Reading the site never requires it.
 
 ## What this experiment can establish
 

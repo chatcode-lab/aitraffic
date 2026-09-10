@@ -1,6 +1,7 @@
 import {DurableObject} from 'cloudflare:workers';
 import {pages} from '../src/lib/registry';
 import {hash,hex,tokenExpired,type FeedbackInput} from './feedback';
+import {createChallenge,CHALLENGE_VERSION,CHALLENGE_TTL_MS,CHALLENGE_MAX_ATTEMPTS} from './challenge';
 import type {Env,Snapshot,PeriodStats,ContextResult,RequestEvent} from './types';
 const MINUTE=60_000,HOUR=60*MINUTE,DAY=24*HOUR;
 const zero=()=>({ai:0,human:0,bot:0,unknown:0,total:0});
@@ -17,7 +18,10 @@ export class TrafficLab extends DurableObject<Env>{
   this.sql(`CREATE INDEX IF NOT EXISTS buckets_page_time ON buckets(page,minute)`);
   this.sql(`CREATE TABLE IF NOT EXISTS tokens (hash TEXT PRIMARY KEY,id TEXT NOT NULL,page TEXT NOT NULL,agent TEXT NOT NULL,test INTEGER NOT NULL,expires INTEGER NOT NULL,changes INTEGER NOT NULL DEFAULT 0)`);
   this.sql(`CREATE INDEX IF NOT EXISTS tokens_expiry ON tokens(expires)`);
+  this.sql(`CREATE TABLE IF NOT EXISTS challenges (token_hash TEXT PRIMARY KEY,answer_hash TEXT NOT NULL,expires INTEGER NOT NULL,attempts INTEGER NOT NULL DEFAULT 0,passed INTEGER NOT NULL DEFAULT 0)`);
   this.sql(`CREATE TABLE IF NOT EXISTS feedback (token_hash TEXT PRIMARY KEY,id TEXT UNIQUE NOT NULL,page TEXT NOT NULL,agent TEXT NOT NULL,test INTEGER NOT NULL,rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),comment TEXT NOT NULL,moderation TEXT NOT NULL,created INTEGER NOT NULL,updated INTEGER NOT NULL)`);
+  // Additive migration: old pending/private records retain their visibility and provenance.
+  if(!this.sql('PRAGMA table_info(feedback)').some(r=>r.name==='verification'))this.sql("ALTER TABLE feedback ADD COLUMN verification TEXT NOT NULL DEFAULT 'legacy-review'");
   this.sql(`CREATE INDEX IF NOT EXISTS feedback_public ON feedback(moderation,test,updated,page)`);
   this.sql(`CREATE TABLE IF NOT EXISTS rate_limits (bucket INTEGER NOT NULL,client TEXT NOT NULL,action TEXT NOT NULL,count INTEGER NOT NULL,PRIMARY KEY(bucket,client,action))`);
   this.sql('INSERT OR IGNORE INTO meta(key,value) VALUES(?,?)','salt',hex(crypto.getRandomValues(new Uint8Array(32))));
@@ -34,6 +38,7 @@ export class TrafficLab extends DurableObject<Env>{
   this.ctx.storage.transactionSync(()=>{
    this.sql('DELETE FROM buckets WHERE minute < ?',Math.floor((now-retention*DAY)/MINUTE));
    this.sql('DELETE FROM tokens WHERE expires <= ?',now);
+   this.sql('DELETE FROM challenges WHERE token_hash NOT IN (SELECT hash FROM tokens)');
    this.sql('DELETE FROM feedback WHERE (test=1 AND updated < ?) OR updated < ?',now-DAY,now-feedbackRetention*DAY);
    this.sql('DELETE FROM rate_limits WHERE bucket < ?',Math.floor((now-2*DAY)/HOUR));
   });this.lastCleanup=now;
@@ -66,8 +71,8 @@ export class TrafficLab extends DurableObject<Env>{
   const feedbackWhere=`moderation='eligible' AND test=0 AND updated>=? AND updated<? AND (?='' OR page=?)`;
   const feedbackParams=[feedbackStart,end*MINUTE,page,page];
   const summary=this.sql(`SELECT COUNT(*) AS count,AVG(rating) AS average FROM feedback WHERE ${feedbackWhere}`,...feedbackParams)[0];
-  const feedbackRows=this.sql(`SELECT id,page,agent,rating,comment,updated FROM feedback WHERE ${feedbackWhere} ORDER BY updated DESC,id LIMIT 20`,...feedbackParams);
-  return {from:new Date(start*MINUTE).toISOString(),to:new Date(end*MINUTE).toISOString(),counts,pages:pageRows.map(r=>({id:String(r.page),requests:Number(r.requests)})),agents:agents.map(r=>({label:String(r.agent),requests:Number(r.requests)})),statuses:statuses.map(r=>({status:Number(r.status),requests:Number(r.requests)})),formats:formats.map(r=>({format:String(r.format),requests:Number(r.requests)})),trend,feedback:{count:Number(summary.count),average:summary.average===null?null:Number(summary.average),items:feedbackRows.map(r=>({id:String(r.id),page:String(r.page),agent:String(r.agent),rating:Number(r.rating),comment:String(r.comment),updatedAt:new Date(Number(r.updated)).toISOString()}))}};
+  const feedbackRows=this.sql(`SELECT id,page,agent,rating,comment,updated,verification FROM feedback WHERE ${feedbackWhere} ORDER BY updated DESC,id LIMIT 20`,...feedbackParams);
+  return {from:new Date(start*MINUTE).toISOString(),to:new Date(end*MINUTE).toISOString(),counts,pages:pageRows.map(r=>({id:String(r.page),requests:Number(r.requests)})),agents:agents.map(r=>({label:String(r.agent),requests:Number(r.requests)})),statuses:statuses.map(r=>({status:Number(r.status),requests:Number(r.requests)})),formats:formats.map(r=>({format:String(r.format),requests:Number(r.requests)})),trend,feedback:{count:Number(summary.count),average:summary.average===null?null:Number(summary.average),items:feedbackRows.map(r=>({id:String(r.id),page:String(r.page),agent:String(r.agent),rating:Number(r.rating),comment:String(r.comment),updatedAt:new Date(Number(r.updated)).toISOString(),verification:String(r.verification)}))}};
  }
  private snapshot(page:string,now:number):Snapshot{
   const cached=this.cache.get(page);if(cached&&now-cached.at<30_000)return cached.value;
@@ -87,26 +92,37 @@ export class TrafficLab extends DurableObject<Env>{
     const token=hex(crypto.getRandomValues(new Uint8Array(32))),digest=await hash(token);
     const ttl=Math.min(3600,Math.max(1,Number(this.env.TOKEN_TTL_SECONDS)||1800));
     const expires=now+ttl*1000;
-    const issued=this.ctx.storage.transactionSync(()=>{if(!this.rate(client,'issue',now))return false;this.sql('INSERT INTO tokens(hash,id,page,agent,test,expires) VALUES(?,?,?,?,?,?)',digest,crypto.randomUUID(),input.page,input.agent,input.test?1:0,expires);return true;});
-    if(issued)result.invitation={token,expiresAt:new Date(expires).toISOString(),page:input.page,agent:input.agent,test:input.test};else result.invitationUnavailable=true;
+    const challengeExpires=Math.min(expires,now+CHALLENGE_TTL_MS),{challenge,answer}=createChallenge(challengeExpires),answerHash=await hash(`${token}:${answer}`);
+    const issued=this.ctx.storage.transactionSync(()=>{if(!this.rate(client,'issue',now))return false;this.sql('INSERT INTO tokens(hash,id,page,agent,test,expires) VALUES(?,?,?,?,?,?)',digest,crypto.randomUUID(),input.page,input.agent,input.test?1:0,expires);this.sql('INSERT INTO challenges(token_hash,answer_hash,expires) VALUES(?,?,?)',digest,answerHash,challengeExpires);return true;});
+    if(issued)result.invitation={token,expiresAt:new Date(expires).toISOString(),page:input.page,agent:input.agent,test:input.test,challenge};else result.invitationUnavailable=true;
    }
    return Response.json(result);
   }
   if(path==='/feedback'){
-   const {input,ip}=await request.json<{input:FeedbackInput;ip:string}>();const digest=await hash(input.token),client=await this.fingerprint(ip,now);
+   const {input,ip}=await request.json<{input:FeedbackInput;ip:string}>();const digest=await hash(input.token),answerHash=await hash(`${input.token}:${input.answer}`),client=await this.fingerprint(ip,now);
    return this.ctx.storage.transactionSync(()=>{
     if(!this.rate(client,'submit',now))return Response.json({error:'Feedback rate limit reached. Try later.'},{status:429});
     const token=this.sql('SELECT * FROM tokens WHERE hash=?',digest)[0];
     if(!token)return Response.json({error:'Token is invalid or expired.'},{status:403});
     if(tokenExpired(Number(token.expires),now))return Response.json({error:'Token has expired.'},{status:410});
+    const challenge=this.sql('SELECT * FROM challenges WHERE token_hash=?',digest)[0];
+    if(!challenge)return Response.json({error:'This invitation predates the challenge. Request a fresh HTML invitation.'},{status:409});
+    if(!Number(challenge.passed)&&now>=Number(challenge.expires))return Response.json({error:'Challenge expired. Request a fresh HTML invitation and submit within two minutes.'},{status:410});
+    if(Number(challenge.attempts)>=CHALLENGE_MAX_ATTEMPTS)return Response.json({error:'Challenge attempt limit reached. Request a fresh HTML invitation.'},{status:429});
+    if(challenge.answer_hash!==answerHash){
+     this.sql('UPDATE challenges SET attempts=attempts+1 WHERE token_hash=?',digest);
+     return Response.json({error:'Incorrect challenge answer. No feedback was saved.',attemptsRemaining:CHALLENGE_MAX_ATTEMPTS-Number(challenge.attempts)-1},{status:403});
+    }
     const existing=this.sql('SELECT * FROM feedback WHERE token_hash=?',digest)[0];
+    if(existing&&['quarantined','pending'].includes(String(existing.moderation)))return Response.json({error:'This record is held privately by the operator and cannot be republished with its token.'},{status:403});
     const unchanged=existing&&Number(existing.rating)===input.rating&&existing.comment===input.comment;
     if(!unchanged&&Number(token.changes)>=10)return Response.json({error:'This token has reached its update limit.'},{status:429});
     if(!unchanged){
-     this.sql(`INSERT INTO feedback(token_hash,id,page,agent,test,rating,comment,moderation,created,updated) VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(token_hash) DO UPDATE SET rating=excluded.rating,comment=excluded.comment,moderation=excluded.moderation,updated=excluded.updated`,digest,String(token.id),String(token.page),String(token.agent),Number(token.test),input.rating,input.comment,Number(token.test)?'test':'pending',now,now);
+     this.sql(`INSERT INTO feedback(token_hash,id,page,agent,test,rating,comment,moderation,created,updated,verification) VALUES(?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(token_hash) DO UPDATE SET rating=excluded.rating,comment=excluded.comment,moderation=excluded.moderation,updated=excluded.updated,verification=excluded.verification`,digest,String(token.id),String(token.page),String(token.agent),Number(token.test),input.rating,input.comment,Number(token.test)?'test':'eligible',now,now,CHALLENGE_VERSION);
+     this.sql('UPDATE challenges SET passed=1 WHERE token_hash=?',digest);
      this.sql('UPDATE tokens SET changes=changes+1 WHERE hash=?',digest);this.cache.clear();
     }
-    return Response.json({ok:true,id:token.id,state:Number(token.test)?'test':unchanged?String(existing.moderation):'pending',action:unchanged?'unchanged':existing?'updated':'created',test:Boolean(token.test),message:Number(token.test)?'Synthetic feedback saved. Excluded from production statistics and public feedback.':'Feedback saved for moderation. It is not yet public unless its unchanged version was already approved.'});
+    return Response.json({ok:true,id:token.id,state:Number(token.test)?'test':'eligible',verification:CHALLENGE_VERSION,action:unchanged?'unchanged':existing?'updated':'created',test:Boolean(token.test),message:Number(token.test)?'Synthetic feedback saved. Challenge passed; excluded from production statistics and public feedback.':'Challenge passed. Rating and comment are eligible for public display without review; the next complete-minute lab snapshot will include them. Reported agent identity remains unverified.'});
    });
   }
   if(path==='/admin'){

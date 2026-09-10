@@ -1,12 +1,13 @@
 import {test,expect,type APIRequestContext} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import site from '../../src/data/site.json';
+import {solveChallenge,challengeFromHtml} from '../challenge-solver.mjs';
 const article='/guides/measure-ai-traffic';
 const fixture=async(request:APIRequestContext,query:string,params:unknown[]=[])=>{
  const r=await request.post('/__fixture',{data:{action:'sql',query,params}});expect(r.ok()).toBeTruthy();return r.json();
 };
 const issue=async(request:APIRequestContext,isTest=true)=>{
- const r=await request.post('/__fixture-context',{data:{page:'measure-ai-traffic',issue:true,agent:'OAI-SearchBot',test:isTest,ip:'192.0.2.25'}});expect(r.ok()).toBeTruthy();return (await r.json()).invitation;
+ const r=await request.post('/__fixture-context',{data:{page:'measure-ai-traffic',issue:true,agent:'OAI-SearchBot',test:isTest,ip:'192.0.2.25'}});expect(r.ok()).toBeTruthy();const invitation=(await r.json()).invitation;return {...invitation,answer:solveChallenge(invitation.challenge)};
 };
 test.beforeEach(async({request})=>{await request.post('/__fixture',{data:{action:'reset'}});});
 test('HTML, Markdown negotiation, aliases, genuine 404, and bodyless HEAD',async({request})=>{
@@ -34,36 +35,40 @@ test('both page activity periods and agent-specific explanation exist in raw HTM
 });
 test('GET creates, updates and deduplicates one token record; concurrent requests stay unique',async({request})=>{
  const inv=await issue(request);
- const query={token:inv.token,rating:'2',comment:'Synthetic: explain cache coverage.'};
+ const query={token:inv.token,answer:inv.answer,rating:'2',comment:'Synthetic: explain cache coverage.'};
  const first=await(await request.get('/api/feedback',{params:query})).json();expect(first.action).toBe('created');expect(first.state).toBe('test');
  const repeat=await(await request.get('/api/feedback',{params:query})).json();expect(repeat.action).toBe('unchanged');expect(repeat.id).toBe(first.id);
  const updated=await(await request.get('/api/feedback',{params:{...query,rating:'1',comment:'Synthetic: the limitation is still unclear.'}})).json();expect(updated.action).toBe('updated');expect(updated.id).toBe(first.id);
- const second=await issue(request);await Promise.all(Array.from({length:8},()=>request.get('/api/feedback',{params:{...query,token:second.token}})));
+ const second=await issue(request);await Promise.all(Array.from({length:8},()=>request.get('/api/feedback',{params:{...query,token:second.token,answer:second.answer}})));
  const rows=await fixture(request,'SELECT COUNT(*) AS count FROM feedback');expect(rows[0].count).toBe(2);
  const stats=await(await request.get('/api/v1/stats')).json();expect(stats.periods['30d'].feedback.count).toBe(0);expect(stats.periods['30d'].counts.total).toBe(0);
 });
 test('HEAD, prefetch, malformed input, expiry, forgery and plain inspection cannot mutate',async({request})=>{
- const inv=await issue(request);const params={token:inv.token,rating:'3',comment:'Synthetic check'};
+ const inv=await issue(request);const params={token:inv.token,answer:inv.answer,rating:'3',comment:'Synthetic check'};
  expect((await request.get('/api/feedback')).status()).toBe(200);
  expect((await request.head('/api/feedback',{params})).status()).toBe(204);
  expect((await request.get('/api/feedback',{params,headers:{'Sec-Purpose':'prefetch'}})).status()).toBe(204);
- for(const input of [{token:inv.token,rating:'3'},{token:inv.token,comment:'Only a comment'},{...params,rating:'3.5'},{...params,comment:' '},{...params,comment:'x'.repeat(501)}])expect((await request.get('/api/feedback',{params:input})).status()).toBe(400);
+ for(const input of [{token:inv.token,answer:inv.answer,rating:'3'},{token:inv.token,answer:inv.answer,comment:'Only a comment'},{...params,rating:'3.5'},{...params,comment:' '},{...params,comment:'x'.repeat(501)}])expect((await request.get('/api/feedback',{params:input})).status()).toBe(400);
  expect((await request.get('/api/feedback?rating=2&rating=3')).status()).toBe(400);
  expect((await request.get('/api/feedback',{params:{...params,token:'b'.repeat(64)}})).status()).toBe(403);
  await fixture(request,'UPDATE tokens SET expires=?',[Date.now()-1]);expect([403,410]).toContain((await request.get('/api/feedback',{params})).status());
  expect((await fixture(request,'SELECT COUNT(*) AS count FROM feedback'))[0].count).toBe(0);
 });
-test('production moderation, hostile text rendering, low ratings, and update re-moderation',async({request})=>{
+test('challenge publication needs no admin, escapes hostile text, accepts criticism, and permits optional removal',async({request})=>{
  const inv=await issue(request,false);const comment='<img src=x onerror="alert(1)"> Synthetic critical feedback.';
- const created=await(await request.post('/api/feedback',{data:{token:inv.token,rating:1,comment}})).json();expect(created.state).toBe('pending');
+ const created=await(await request.post('/api/feedback',{headers:{'X-Fixture-No-Admin':'1'},data:{token:inv.token,answer:inv.answer,rating:1,comment}})).json();expect(created.state).toBe('eligible');expect(created.verification).toBe('text-sort-v1');
  const adminHeaders={Authorization:'Bearer synthetic-local-test-key-only'};
- const result=await request.post('/api/admin/feedback',{headers:adminHeaders,data:{action:'moderate',id:created.id,state:'eligible'}});expect(result.status()).toBe(200);
+ expect((await request.post('/api/admin/feedback',{headers:{'X-Fixture-No-Admin':'1'},data:{action:'list'}})).status()).toBe(503);
  await fixture(request,'UPDATE feedback SET updated=? WHERE id=?',[Date.now()-120000,created.id]);
  const stats=await(await request.get('/api/v1/stats')).json();expect(stats.periods['24h'].feedback.count).toBe(1);expect(stats.periods['24h'].feedback.average).toBe(1);
- const html=await(await request.get('/live-lab')).text();expect(html).toContain('&lt;img src=x onerror=');expect(html).not.toContain('<img src=x');expect(html).not.toContain('AggregateRating');
- const update=await(await request.post('/api/feedback',{data:{token:inv.token,rating:2,comment:'Synthetic revised criticism'}})).json();expect(update.state).toBe('pending');
+ const html=await(await request.get('/live-lab')).text();expect(html).toContain('&lt;img src=x onerror=');expect(html).not.toContain('<img src=x');expect(html).not.toContain('AggregateRating');expect(html).toContain('Challenge passed · Comment not reviewed');expect(html).toContain('data-untrusted-feedback');
+ const update=await(await request.post('/api/feedback',{data:{token:inv.token,answer:inv.answer,rating:2,comment:'Synthetic revised criticism'}})).json();expect(update.state).toBe('eligible');
+ await fixture(request,'UPDATE feedback SET updated=? WHERE id=?',[Date.now()-120000,created.id]);
+ expect((await(await request.get('/api/v1/stats')).json()).periods['24h'].feedback.average).toBe(2);
+ expect((await request.post('/api/admin/feedback',{headers:adminHeaders,data:{action:'moderate',id:created.id,state:'quarantined'}})).status()).toBe(200);
+ expect((await request.post('/api/feedback',{data:{token:inv.token,answer:inv.answer,rating:5,comment:'Synthetic attempt to undo removal'}})).status()).toBe(403);
  const after=await(await request.get('/api/v1/stats')).json();expect(after.periods['24h'].feedback.count).toBe(0);
- const testInv=await issue(request);const testRecord=await(await request.post('/api/feedback',{data:{token:testInv.token,rating:4,comment:'Synthetic test'}})).json();expect((await request.post('/api/admin/feedback',{headers:adminHeaders,data:{action:'moderate',id:testRecord.id,state:'eligible'}})).status()).toBe(400);
+ const testInv=await issue(request);const testRecord=await(await request.post('/api/feedback',{data:{token:testInv.token,answer:testInv.answer,rating:4,comment:'Synthetic test'}})).json();expect((await request.post('/api/admin/feedback',{headers:adminHeaders,data:{action:'moderate',id:testRecord.id,state:'eligible'}})).status()).toBe(400);
  expect((await request.post('/api/admin/feedback',{data:{action:'list'}})).status()).toBe(401);
 });
 test('real local collection excludes tests, APIs, assets, HEAD and prefetch; rolling windows reconcile',async({request})=>{
@@ -80,9 +85,9 @@ test('real local collection excludes tests, APIs, assets, HEAD and prefetch; rol
  const next=await(await request.get('/api/v1/stats')).json();expect(next.periods['24h'].counts.total).toBe(4);expect(next.periods['30d'].counts.total).toBe(11);
 });
 test('rate limits, changed-submission cap, and storage outage preserve readable content',async({request})=>{
- const inv=await issue(request);for(let i=0;i<10;i++)expect((await request.post('/api/feedback',{data:{token:inv.token,rating:2,comment:`Synthetic revision ${i}`}})).status()).toBe(200);
- expect((await request.post('/api/feedback',{data:{token:inv.token,rating:2,comment:'Synthetic revision 11'}})).status()).toBe(429);
- expect((await request.post('/api/feedback',{data:{token:inv.token,rating:2,comment:'Synthetic revision 9'}})).status()).toBe(200);
+ const inv=await issue(request);for(let i=0;i<10;i++)expect((await request.post('/api/feedback',{data:{token:inv.token,answer:inv.answer,rating:2,comment:`Synthetic revision ${i}`}})).status()).toBe(200);
+ expect((await request.post('/api/feedback',{data:{token:inv.token,answer:inv.answer,rating:2,comment:'Synthetic revision 11'}})).status()).toBe(429);
+ expect((await request.post('/api/feedback',{data:{token:inv.token,answer:inv.answer,rating:2,comment:'Synthetic revision 9'}})).status()).toBe(200);
  await fixture(request,'INSERT OR REPLACE INTO rate_limits VALUES(?,?,?,?)',[Math.floor(Date.now()/3600000),'global','issue',2000]);
  const limited=await(await request.get(article,{headers:{'User-Agent':'GPTBot/1.0'}})).text();expect(limited).not.toContain('data-feedback-token');expect(limited).toContain('rate limited');
  const response=await request.get(article,{headers:{'X-Fixture-Storage-Failure':'1','User-Agent':'GPTBot/1.0'}});expect(response.status()).toBe(200);const html=await response.text();expect(html).toContain('Four signals, four different questions');expect(html).toContain('Data temporarily unavailable');expect(html).not.toContain('data-feedback-token');
@@ -93,17 +98,18 @@ test('no JavaScript required: navigation, test form, feedback submission and per
  await page.goto('/');await expect(page.getByRole('heading',{name:'Understand your AI traffic.'})).toBeVisible();await expect(page.getByText('Last 24 hours',{exact:true})).toBeVisible();
  await page.getByRole('link',{name:'Explore the live lab'}).click();await page.getByRole('link',{name:'Last 30 days',exact:true}).click();await expect(page).toHaveURL(/period=30d/);
  await page.getByRole('link',{name:'Open test mode'}).click();await page.getByRole('button',{name:'Inspect agent response'}).click();await expect(page.getByText('Simulated label:',{exact:false})).toBeVisible();
+ await page.getByLabel('Challenge answer').fill(solveChallenge(challengeFromHtml(await page.content())));
  await page.getByLabel('Usefulness rating').selectOption('2');await page.getByLabel('Short comment').fill('Synthetic keyboard and no-JavaScript check.');await page.getByRole('button',{name:'Submit test feedback'}).click();await expect(page.getByRole('heading',{name:'Feedback received.'})).toBeVisible();await expect(page.getByText('Synthetic feedback saved.',{exact:false})).toBeVisible();await context.close();
 });
 test('mobile widths, keyboard focus, and automated accessibility',async({page})=>{
  test.setTimeout(60_000);
  for(const width of [320,375,390,430,1280]){
   await page.setViewportSize({width,height:900});
-  for(const path of ['/',article,'/live-lab','/live-lab/test','/methodology']){
+  for(const path of ['/',article,'/live-lab','/live-lab/test','/live-lab/test?page=measure-ai-traffic','/methodology']){
    await page.goto(path);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBeTruthy();
   }
  }
- for(const path of ['/',article,'/live-lab','/live-lab/test']){
+ for(const path of ['/',article,'/live-lab','/live-lab/test','/live-lab/test?page=measure-ai-traffic']){
   await page.goto(path);const result=await new AxeBuilder({page}).analyze();expect(result.violations.filter(v=>['serious','critical'].includes(v.impact||''))).toEqual([]);
  }
  await page.goto('/');await page.keyboard.press('Tab');await expect(page.getByRole('link',{name:'Skip to content'})).toBeFocused();await page.keyboard.press('Enter');await page.keyboard.press('Tab');expect(await page.evaluate(()=>document.activeElement?.tagName)).toBe('A');
@@ -111,8 +117,34 @@ test('mobile widths, keyboard focus, and automated accessibility',async({page})=
 test('retention removes old aggregates, expired token hashes, and aged feedback',async({request})=>{
  const now=Date.now();
  await fixture(request,'INSERT INTO buckets VALUES(?,?,?,?,?,?,?)',[Math.floor(now/60000)-32*1440,'home','unknown','',200,'html',5]);
- const inv=await issue(request,false);await request.post('/api/feedback',{data:{token:inv.token,rating:1,comment:'Synthetic old record'}});
+ const inv=await issue(request,false);await request.post('/api/feedback',{data:{token:inv.token,answer:inv.answer,rating:1,comment:'Synthetic old record'}});
  await fixture(request,'UPDATE feedback SET updated=?',[now-91*86400000]);await fixture(request,'UPDATE tokens SET expires=?',[now-1000]);
  await request.post('/__fixture',{data:{action:'cleanup'}});
- expect((await fixture(request,'SELECT COUNT(*) AS count FROM buckets'))[0].count).toBe(0);expect((await fixture(request,'SELECT COUNT(*) AS count FROM feedback'))[0].count).toBe(0);expect((await fixture(request,'SELECT COUNT(*) AS count FROM tokens'))[0].count).toBe(0);
+ expect((await fixture(request,'SELECT COUNT(*) AS count FROM buckets'))[0].count).toBe(0);expect((await fixture(request,'SELECT COUNT(*) AS count FROM feedback'))[0].count).toBe(0);expect((await fixture(request,'SELECT COUNT(*) AS count FROM tokens'))[0].count).toBe(0);expect((await fixture(request,'SELECT COUNT(*) AS count FROM challenges'))[0].count).toBe(0);
+});
+test('answers are scoped, expire before first submission, and lock after three failures including concurrent attempts',async({request})=>{
+ const first=await issue(request),second=await issue(request);
+ const input={token:second.token,answer:first.answer,rating:4,comment:'Synthetic replay attempt'};
+ expect((await request.post('/api/feedback',{data:input})).status()).toBe(403);
+ const attempts=await Promise.all(Array.from({length:5},()=>request.post('/api/feedback',{data:{...input,answer:'0'}})));
+ expect(attempts.filter(r=>r.status()===403)).toHaveLength(2);expect(attempts.filter(r=>r.status()===429)).toHaveLength(3);
+ expect((await request.post('/api/feedback',{data:{...input,answer:second.answer}})).status()).toBe(429);
+ expect((await fixture(request,'SELECT MAX(attempts) AS attempts FROM challenges'))[0].attempts).toBe(3);
+ await fixture(request,'UPDATE challenges SET expires=?',[Date.now()-1]);
+ expect((await request.post('/api/feedback',{data:{...input,token:first.token,answer:first.answer}})).status()).toBe(410);
+ expect((await fixture(request,'SELECT COUNT(*) AS count FROM feedback'))[0].count).toBe(0);
+ const fresh=await issue(request);
+ expect((await request.post('/api/feedback',{data:{...input,token:fresh.token,answer:fresh.answer}})).status()).toBe(200);
+ await fixture(request,'UPDATE challenges SET expires=?',[Date.now()-1]);
+ expect((await request.post('/api/feedback',{data:{...input,token:fresh.token,answer:fresh.answer,comment:'Synthetic revision after passing'}})).status()).toBe(200);
+});
+test('legacy pending records remain private and legacy capabilities require a fresh challenge',async({request})=>{
+ const inv=await issue(request,false);
+ await fixture(request,"INSERT INTO feedback(token_hash,id,page,agent,test,rating,comment,moderation,created,updated) SELECT hash,id,page,agent,test,2,'Synthetic legacy private comment','pending',?,? FROM tokens",[Date.now()-120000,Date.now()-120000]);
+ await fixture(request,'DELETE FROM challenges');
+ const response=await request.post('/api/feedback',{data:{token:inv.token,answer:inv.answer,rating:2,comment:'Synthetic legacy private comment'}});
+ expect(response.status()).toBe(409);
+ const rows=await fixture(request,'SELECT moderation,verification FROM feedback');expect(rows[0]).toEqual({moderation:'pending',verification:'legacy-review'});
+ expect((await(await request.get('/api/v1/stats')).json()).periods['30d'].feedback.count).toBe(0);
+ expect(await(await request.get('/live-lab')).text()).not.toContain('Synthetic legacy private comment');
 });

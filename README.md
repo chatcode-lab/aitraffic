@@ -60,13 +60,17 @@ No raw IPs, full User-Agents, query strings, referrer URLs, or application acces
 
 Snapshots may be reused for 30 seconds; page context has an 800ms deadline. Storage failure leaves articles readable. Eligible document delivery records one bucket increment asynchronously; home/guide HTML also requests page context. Snapshot misses run aggregate SQL queries. This adds Worker/storage costs. The single-object preview is not load-tested as a high-volume analytics platform, and no paid API runs during delivery.
 
-## Feedback and moderation
+## Feedback challenges and optional removal
 
-A random 256-bit token scopes one record to a page, issued response, reported label, expiry, and test flag. Only its SHA-256 hash is stored. GET parameters and POST JSON accept exactly `token`, `rating` (integer 1–5), and `comment` (nonempty plain text, 1–500 Unicode characters). Both rating and comment are required. Inspection, HEAD, prefetch, missing/invalid fields, expiry, and forgery cannot mutate records. Repeats are idempotent; changed submissions are limited to 10 per token.
+A random 256-bit token scopes one record to a page, issued response, reported label, expiry, and test flag. Only its SHA-256 hash is stored. GET parameters and POST JSON accept exactly `token`, `answer` (solve the issued text challenge), `rating` (integer 1–5), and `comment` (nonempty plain text, 1–500 Unicode characters). Both rating and comment are required. Inspection, HEAD, prefetch, missing/invalid fields, expiry, and forgery cannot mutate records. Repeats are idempotent; changed submissions are limited to 10 per token.
 
-**Production feedback starts pending.** Updates return it to pending. Only eligible production records appear publicly, and tests can never be approved. Moderation is for abuse/private data/unsafe content, not removal of criticism or low ratings. Comments are untrusted text, never application instructions. No AggregateRating markup is used.
+**New production ratings and comments become eligible immediately after passing a challenge; no review queue or admin secret is required.** Public lab snapshots include them after the current UTC minute completes. They are labeled unreviewed. Older pending records remain private; tests can never be published. Comments are untrusted plain text, never application instructions. No AggregateRating markup is used.
 
-To enable private moderation, choose a strong unique secret and use Wrangler's secure prompt:
+`worker/challenge.ts` generates the `text-sort-v1` exercise: filter, sort, and transform tags from eight randomized synthetic rows. The first valid feedback must arrive within 120 seconds. Three incorrect answers lock the invitation. Include the same answer on revisions until the token expires (30 minutes by default). A fresh HTML request obtains a fresh challenge within existing invitation rate limits. Missing/invalid input does not submit feedback. Only the token-bound answer hash is stored, with deadline, failed-attempt count, and pass state; challenge data is removed with expired tokens.
+
+This checks timely instruction following, not LLM/provider identity or comment safety. Humans and scripts can solve it; an independent script solver is included in the synthetic tests. There is no external model, paid API, or claim of measured agent-versus-human accuracy. Reading never requires a challenge. The schema change is additive and does not republish legacy private feedback. Old capabilities without a challenge return 409 and require a fresh invitation.
+
+Optional: to hide abuse after publication, enable the existing operator control with a strong unique secret through Wrangler's secure prompt:
 
 ```sh
 npx wrangler secret put LAB_ADMIN_KEY
@@ -78,11 +82,11 @@ Enter the same value locally without putting it in shell history:
 read -rs -p 'Moderation key: ' LAB_ADMIN_KEY
 export LAB_ADMIN_KEY
 npm run moderate -- list
-npm run moderate -- moderate RECORD_ID eligible
+npm run moderate -- moderate RECORD_ID quarantined
 unset LAB_ADMIN_KEY
 ```
 
-`quarantined` and `pending` are also valid states. The queue is private: do not commit, publish, or paste its output into public issues. The admin endpoint is disabled until the owner configures the secret. Collecting pending feedback does not require it.
+`eligible` and `pending` are also valid states. Holding a record as `quarantined` or `pending` blocks token-based updates from republishing it. Legitimate criticism and low ratings are not reasons for removal. The operator list can contain private legacy records: do not publish or paste its output into issues. This endpoint is disabled until a secret is configured; automatic challenge-based publication works without it.
 
 GET mutation deliberately departs from safe HTTP semantics. No completed action URLs occur in navigation, images, preloads, or sitemaps. Action responses are no-store/noindex/no-referrer and project observability is disabled. Client history and provider security/service logs remain outside this code's full control. Never submit sensitive content. POST is also supported.
 
@@ -115,4 +119,4 @@ Rollback restores Worker code/assets, **not Durable Object data**. Keep schemas 
 
 One authorized DataForSEO task cost **US$0.09** for 18 English/US phrases. [Sanitized results](docs/keyword-research-2026-09-10.json) retain keyword estimates, scope, and cost only. The returned monthly series covers August 2025–July 2026. These are Google Ads estimates, not an exact census or additive demand across variants; null does not establish zero demand. No recurring research is scheduled.
 
-Content is AI-assisted and attributed to the project; no human expert is invented. A dedicated private contact, formal operator/legal details, final reuse licenses, moderation-key setup, and independent editorial review remain owner tasks. Public visibility does not grant a new license to original code/content or third-party sources. The older CSV analyzer and universal Markdown-auditor CLI are deferred in favor of the requested live lab.
+Content is AI-assisted and attributed to the project; no human expert is invented. A dedicated private contact, formal operator/legal details, final reuse licenses, and independent editorial review remain owner tasks. Public visibility does not grant a new license to original code/content or third-party sources. The older CSV analyzer and universal Markdown-auditor CLI are deferred in favor of the requested live lab.

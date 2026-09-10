@@ -2,7 +2,7 @@
 
 ## Current scope amendment — 2026-09-10
 
-The newer owner-selected [build prompt](../aitrafficanalytic-build-prompt.md) replaces the two tools below with the working **AI Traffic & Agent Feedback Lab**. Its contract is in [worker/index.ts](../worker/index.ts), [worker/lab.ts](../worker/lab.ts), and [public methodology](../src/content/methodology.md). The [README](../README.md) documents use and moderation; integration tests exercise the actual Worker and SQLite implementation. The earlier analyzer and auditor are deferred backlog, not unfinished public navigation items.
+The newer owner-selected [build prompt](../aitrafficanalytic-build-prompt.md) replaces the two tools below with the working **AI Traffic & Agent Feedback Lab**. Its contract is in [worker/index.ts](../worker/index.ts), [worker/lab.ts](../worker/lab.ts), and [public methodology](../src/content/methodology.md). The [README](../README.md) documents timed challenges, automatic feedback publication, and optional removal; integration tests exercise the actual Worker and SQLite implementation. The earlier analyzer and auditor are deferred backlog, not unfinished public navigation items.
 
 Build two bounded tools. Share pure parsing/validation functions between UI, CLI, and tests where useful. No external account or paid API is required to use either initial tool.
 

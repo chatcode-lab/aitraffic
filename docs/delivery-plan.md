@@ -19,7 +19,16 @@ The owner selected `aitrafficanalytic-build-prompt.md` and authorized public Git
 - [x] Deploy and verify production HTTPS apex/www, representations, noindex boundaries, and synthetic feedback.
 - [x] Record deployed version, rollback steps, screenshots, and owner follow-ups.
 
-Owner follow-ups: configure a moderation secret, provide a private contact/formal operator details, decide licenses, review the AI-assisted articles independently, and set an ongoing operating budget if the experiment grows. Pending feedback can be collected before moderation is enabled. No third-party browser analytics, Search Console submission, recurring paid research, customer integrations, or public sample traffic is configured.
+Owner follow-ups: provide a private contact/formal operator details, decide licenses, review the AI-assisted articles independently, and set an ongoing operating budget if the experiment grows. New feedback uses the owner-selected timed challenge and automatic publication; a secret is optional for later abuse removal. Legacy pending records remain private. No third-party browser analytics, Search Console submission, recurring paid research, customer integrations, or public sample traffic is configured.
+
+## Timed feedback challenge — 10 September 2026
+
+The owner requested omission of the moderation queue and explicitly selected immediate publication of both ratings and comments after a short-lived challenge.
+
+- [x] Implement response-scoped randomized exercises, two-minute first-submission deadline, three failed-attempt limit, and automatic eligibility.
+- [x] Preserve legacy private records, synthetic exclusions, rate limits, plain-text rendering, retention, and optional abuse removal.
+- [x] Update public HTML/Markdown instructions, privacy/methodology, and operating documentation.
+- [ ] Complete unit/integration/browser checks and live synthetic verification, then record the release.
 
 ## Historical starter acceptance gates
 

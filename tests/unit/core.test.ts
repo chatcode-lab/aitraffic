@@ -5,6 +5,8 @@ import {classify,isPrefetch} from '../../src/lib/classify';
 import {validateFeedback,tokenExpired,hash} from '../../worker/feedback';
 import {esc,renderActivity} from '../../worker/render';
 import {pages} from '../../src/lib/registry';
+import {createChallenge} from '../../worker/challenge';
+import {solveChallenge} from '../challenge-solver.mjs';
 const matrix:[string|null,string][]=[
  [null,'html'],['','html'],['*/*','html'],['text/*','html'],['text/html','html'],['text/markdown','markdown'],
  ['text/markdown;q=0,text/html','html'],['text/markdown;q=0.3,text/html;q=0.9','html'],
@@ -34,8 +36,9 @@ test('prefetch and prerender markers are rejected from mutation eligibility',()=
  assert.equal(isPrefetch(new Headers()),false);
 });
 test('feedback requires both fields and strict integer rating',()=>{
- const base={token:'a'.repeat(64),rating:3,comment:'Useful, but clarify the cache boundary.'};
+ const base={token:'a'.repeat(64),answer:'abcdef-123456-a1b2c3',rating:3,comment:'Useful, but clarify the cache boundary.'};
  assert.ok('value' in validateFeedback(base));
+ for(const answer of [undefined,null,'',' ',42,'x'.repeat(101),'<script>'])assert.ok('error'in validateFeedback({...base,answer}));
  for(const rating of [0,6,-1,NaN,3.5,'3.0',' 3','+3',null])assert.ok('error'in validateFeedback({...base,rating}));
  for(const comment of ['', '   ',null,'x'.repeat(501),'hello\u0000'])assert.ok('error'in validateFeedback({...base,comment}));
  assert.ok('error'in validateFeedback({token:base.token,rating:3}));
@@ -55,4 +58,18 @@ test('untrusted feedback is escaped as text',()=>{
 });
 test('unavailable activity is distinct from zero observations',()=>{
  const html=renderActivity(null,pages[0]);assert.match(html,/temporarily unavailable/);assert.doesNotMatch(html,/No observations yet/);assert.match(html,/Last 24 hours/);assert.match(html,/Last 30 days/);
+});
+
+test('random challenges have one reproducible answer from public instructions',()=>{
+ const prompts=new Set(),answers=new Set();
+ for(let i=0;i<80;i++){
+  const {challenge,answer}=createChallenge(180000);
+  assert.equal(solveChallenge(challenge),answer);
+  assert.equal(challenge.rows.length,8);assert.equal(new Set(challenge.rows.map(r=>r.rank)).size,8);
+  assert.ok(answer.split('-').length>=3&&answer.split('-').length<=5);
+  assert.equal(challenge.expiresAt,'1970-01-01T00:03:00.000Z');assert.equal(challenge.maxAttempts,3);
+  assert.ok(!JSON.stringify(challenge).includes(answer));
+  prompts.add(challenge.prompt);answers.add(answer);
+ }
+ assert.ok(prompts.size>1);assert.equal(answers.size,80);
 });

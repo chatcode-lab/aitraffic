@@ -1,6 +1,6 @@
 # Implementation handoff — 10 September 2026
 
-The first preview is implemented and deployed at **https://aitrafficanalytic.com**. Cloudflare Worker `aitraffic` serves the apex and redirects `www`. Current initial deployment: `ab7c3c0b-52b5-4c99-8681-5c2c7a710093`. The public repository is [chatcode-lab/aitraffic](https://github.com/chatcode-lab/aitraffic). Application source is committed as `13399e5`, and [GitHub CI](https://github.com/chatcode-lab/aitraffic/actions/runs/34516252673) passed all install/type/unit/build/content/browser steps. See the research log for release evidence and limits.
+The first preview is implemented and deployed at **https://aitrafficanalytic.com**. Cloudflare Worker `aitraffic` serves the apex and redirects `www`. Initial deployment (historical): `ab7c3c0b-52b5-4c99-8681-5c2c7a710093`. The public repository is [chatcode-lab/aitraffic](https://github.com/chatcode-lab/aitraffic). Application source is committed as `13399e5`, and [GitHub CI](https://github.com/chatcode-lab/aitraffic/actions/runs/34516252673) passed all install/type/unit/build/content/browser steps. See the research log for release evidence and limits.
 
 ## What is implemented
 
@@ -8,7 +8,7 @@ The first preview is implemented and deployed at **https://aitrafficanalytic.com
 - One page registry generates HTML, Markdown, catalog, sitemap, metadata, dates, and aliases. Native negotiation honors media quality; unknown URLs are real 404s.
 - The actual Worker/static-asset layer renders activity into initial HTML with JavaScript disabled. UTC minute windows, classification confidence, unknowns, denominators, and collection start are explicit.
 - A public site/page lab shows actual aggregates and eligible feedback, with no seeded production data. Tests are clearly labeled and excluded.
-- SQLite feedback tokens scope one updatable record to a response/page; GET and POST, expiry, idempotence, concurrent writes, rate limits, moderation, safe rendering, and retention are implemented.
+- SQLite feedback tokens scope one updatable record to a response/page. Randomized two-minute text challenges permit automatic publication; GET and POST, expiry, idempotence, concurrent writes, rate limits, optional removal, safe rendering, and retention are implemented.
 - No browser analytics script, operational research API, login/billing, customer integration, or recurring research job.
 
 ## Scope and authority
@@ -17,7 +17,7 @@ The owner explicitly requested the newer `aitrafficanalytic-build-prompt.md`, pu
 
 ## Verified locally
 
-`npm run check`, 26 unit tests, production build, content validation (11 records / 10 sitemap pages / 179 internal links), and 11 actual Worker/SQLite/browser integration tests passed. Integration cases include no-JavaScript forms, keyboard, five widths, no serious/critical axe violations, atomic feedback updates, hostile content, exclusion, retention, and storage failure. Live smoke checks passed for representations, canonical pages, sitemap/catalog, true errors, original-HTML activity, token uniqueness, synthetic feedback creation/update/deduplication, HEAD/prefetch safety, and HTTP/HTTPS apex/www behavior.
+`npm run check`, 27 unit tests, production build, content validation (11 records / 10 sitemap pages / 179 internal links), and 13 actual Worker/SQLite/browser integration tests passed for the challenge update. New checks cover automatic publication with no admin secret, deadline, scoped answers, concurrent attempt limits, legacy privacy, and operator-held records. Integration cases include no-JavaScript forms, keyboard, five widths, no serious/critical axe violations, atomic feedback updates, hostile content, exclusion, retention, and storage failure. Live smoke checks passed for representations, canonical pages, sitemap/catalog, true errors, original-HTML activity, token uniqueness, synthetic feedback creation/update/deduplication, HEAD/prefetch safety, and HTTP/HTTPS apex/www behavior.
 
 The local Chromium runtime uses libraries extracted under ignored artifacts. `npm run preview:worker` must pass `--host localhost`; once production routes exist, Wrangler otherwise rewrites local requests to the production hostname and triggers the canonical redirect. This was found by performance checks and fixed in the local command.
 
@@ -25,14 +25,14 @@ Three completed mobile Lighthouse runs scored 99/98/100 for performance and 100 
 
 ## Operate and extend
 
-Read [README](README.md) for all commands, article publishing, moderation, retention/classification configuration, deployment, and rollback. Start with `npm ci`, then `npm run build` and `npm run preview:worker`. Astro-only development is a content/layout preview with unavailable statistics.
+Read [README](README.md) for all commands, article publishing, timed challenges, optional removal, retention/classification configuration, deployment, and rollback. Start with `npm ci`, then `npm run build` and `npm run preview:worker`. Astro-only development is a content/layout preview with unavailable statistics.
 
 The separate `wrangler.test.jsonc` exposes local fixtures and must never be deployed. Production imports no fixture code. The application never logs request URLs/tokens/comments; avoid enabling Cloudflare request observability or tailing action requests without a deliberate privacy review.
 
 ## Owner follow-ups and next bounded task
 
-Configure `LAB_ADMIN_KEY` via Wrangler before reviewing the pending feedback queue; the admin route is disabled until then. Pending collection works without it. Only explicitly eligible production feedback appears publicly; legitimate low ratings are eligible on the same terms as praise. Do not publish private queue output or feedback capabilities.
+The owner replaced the review queue with a short-lived text challenge. New production ratings and comments become eligible after passing, without an admin secret. Three incorrect answers lock an invitation; the first submission must pass within two minutes. Revisions include the same answer until the 30-minute token expires. Comments are explicitly unreviewed and agent identity remains unverified. Older pending records stay private. `LAB_ADMIN_KEY` is optional for hiding abuse afterward; held records cannot be republished with their token. Do not publish private operator-list output or feedback capabilities.
 
 Provide a private contact/formal operator details, choose code/content licenses, and independently review the AI-assisted articles. Neither an expert identity nor a license was invented. Configure an operating budget as traffic grows. Source-IP verification, referral analytics, citation studies, load testing, and Search Console are not implemented or claimed.
 
-Next bounded product task: review the first complete UTC day of real aggregate traffic against the methodology, independently check the three launch guides, and moderate genuine pending feedback. Do not manufacture activity or schedule paid research. One authorized DataForSEO task cost US$0.09; sanitized estimates and their August 2025–July 2026 series are in the research log.
+Next bounded product task: review the first complete UTC day of real aggregate traffic against the methodology, independently check the three launch guides, and assess the challenge experience using genuine activity. Do not manufacture activity or schedule paid research. One authorized DataForSEO task cost US$0.09; sanitized estimates and their August 2025–July 2026 series are in the research log.
