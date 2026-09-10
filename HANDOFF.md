@@ -1,6 +1,6 @@
 # Implementation handoff — 10 September 2026
 
-The first preview is implemented and deployed at **https://aitrafficanalytic.com**. Cloudflare Worker `aitraffic` serves the apex and redirects `www`. Current initial deployment: `ab7c3c0b-52b5-4c99-8681-5c2c7a710093`. The public repository is [chatcode-lab/aitraffic](https://github.com/chatcode-lab/aitraffic); source push/CI verification is being finalized in this pass. See the final research-log entry for the authoritative release record.
+The first preview is implemented and deployed at **https://aitrafficanalytic.com**. Cloudflare Worker `aitraffic` serves the apex and redirects `www`. Current initial deployment: `ab7c3c0b-52b5-4c99-8681-5c2c7a710093`. The public repository is [chatcode-lab/aitraffic](https://github.com/chatcode-lab/aitraffic). Application source is committed as `13399e5`, and [GitHub CI](https://github.com/chatcode-lab/aitraffic/actions/runs/34516252673) passed all install/type/unit/build/content/browser steps. See the research log for release evidence and limits.
 
 ## What is implemented
 
@@ -20,6 +20,8 @@ The owner explicitly requested the newer `aitrafficanalytic-build-prompt.md`, pu
 `npm run check`, 26 unit tests, production build, content validation (11 records / 10 sitemap pages / 179 internal links), and 11 actual Worker/SQLite/browser integration tests passed. Integration cases include no-JavaScript forms, keyboard, five widths, no serious/critical axe violations, atomic feedback updates, hostile content, exclusion, retention, and storage failure. Live smoke checks passed for representations, canonical pages, sitemap/catalog, true errors, original-HTML activity, token uniqueness, synthetic feedback creation/update/deduplication, HEAD/prefetch safety, and HTTP/HTTPS apex/www behavior.
 
 The local Chromium runtime uses libraries extracted under ignored artifacts. `npm run preview:worker` must pass `--host localhost`; once production routes exist, Wrangler otherwise rewrites local requests to the production hostname and triggers the canonical redirect. This was found by performance checks and fixed in the local command.
+
+Three completed mobile Lighthouse runs scored 99/98/100 for performance and 100 for accessibility, with zero CLS. These are local simulated-mobile measurements, not production field data. Production screenshots are available locally under ignored `artifacts/`; no tokens or private inputs were captured.
 
 ## Operate and extend
 

@@ -79,3 +79,12 @@ The aborted performance runs uncovered a local-preview routing issue after addin
 Production screenshots were captured with Chromium and JavaScript disabled at 1440px desktop and 390px mobile, using the test header: home desktop/mobile, guide mobile, and lab desktop. No response tokens were captured; screenshots and raw measurement reports remain ignored local artifacts. Secrets were scanned against staged source and built assets without printing their values; `.env`, `.dev.vars`, `.wrangler`, dependencies, and artifacts are excluded from Git.
 
 Operations: use `wrangler deployments list`, then `wrangler rollback VERSION_ID` for code/assets; SQLite data is not rolled back. Production moderation remains deliberately disabled until the owner sets `LAB_ADMIN_KEY`; incoming real feedback stays pending. Dedicated private contact/operator details, licensing, independent editorial review, operating budget, Search Console, referral/citation measurement, and load testing remain explicitly unclaimed owner follow-ups. No recurring research, auto-deployment, global/system installation, unrelated DNS change, or third-party tracking was enabled.
+
+
+### Source publication and CI completion
+
+The public repository is **https://github.com/chatcode-lab/aitraffic**, with homepage metadata pointing to the live domain. Root application commit: **13399e516c8063a5e9b8bbfeb8e7a1f38b34112b**. Credentials were excluded and the staged tree/build were checked without printing secret values. The repository had no Git author identity, so commit attribution was configured only in this repo using the authenticated GitHub account's no-reply identity; global Git configuration was untouched.
+
+[GitHub Actions run 34516252673](https://github.com/chatcode-lab/aitraffic/actions/runs/34516252673) succeeded on 10 September 2026, finishing at 18:46:08 UTC. The clean Ubuntu runner passed npm ci, Chromium installation, type checks, 26 unit tests, build, content validation, and all 11 Worker/SQLite/browser tests. Actions are pinned to the checked official checkout/setup-node release commits. The workflow does not deploy, schedule external work, or use research credentials.
+
+First-preview acceptance is complete. Next bounded work is an independent content review, moderation-secret setup, and inspection of the first complete production reporting window. The source registry, tests, operation commands, rollback method, evidence, deliberate GET tradeoff, privacy limits, and owner decisions are all documented without requiring the conversation transcript.
