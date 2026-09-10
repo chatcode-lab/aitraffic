@@ -1,0 +1,671 @@
+{
+  "checked_at": "2026-09-10T17:57:32.048868+00:00",
+  "endpoint": "keywords_data/google_ads/search_volume/live",
+  "market": "US",
+  "language": "en",
+  "search_partners": false,
+  "requested_keywords": [
+    "ai traffic analytics",
+    "ai traffic",
+    "ai bot analytics",
+    "track ai traffic",
+    "ai referral traffic",
+    "ai crawler analytics",
+    "cloudflare ai analytics",
+    "track ai bots",
+    "wordpress ai traffic",
+    "wordpress bot tracking",
+    "shopify ai traffic",
+    "chatgpt referral traffic",
+    "ai agents seo",
+    "ai content audit",
+    "markdown for ai agents",
+    "llms.txt",
+    "ai agent feedback",
+    "how to track ai traffic"
+  ],
+  "cost_usd": 0.09,
+  "status_code": 20000,
+  "results": [
+    {
+      "keyword": "ai traffic analytics",
+      "search_volume": 110,
+      "monthly_searches": [
+        {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 50
+        },
+        {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 70
+        },
+        {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 50
+        },
+        {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 90
+        },
+        {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 50
+        },
+        {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 50
+        },
+        {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 30
+        },
+        {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 50
+        },
+        {
+          "year": 2025,
+          "month": 9,
+          "search_volume": 880
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "search_volume": 20
+        }
+      ]
+    },
+    {
+      "keyword": "ai traffic",
+      "search_volume": 210,
+      "monthly_searches": [
+        {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 170
+        },
+        {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 210
+        },
+        {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 260
+        },
+        {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 260
+        },
+        {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 320
+        },
+        {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 170
+        },
+        {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 140
+        },
+        {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 140
+        },
+        {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 170
+        },
+        {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 140
+        },
+        {
+          "year": 2025,
+          "month": 9,
+          "search_volume": 170
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "search_volume": 170
+        }
+      ]
+    },
+    {
+      "keyword": "ai bot analytics",
+      "search_volume": null,
+      "monthly_searches": null
+    },
+    {
+      "keyword": "track ai traffic",
+      "search_volume": 10,
+      "monthly_searches": [
+        {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 30
+        },
+        {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 90
+        },
+        {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 9,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "search_volume": 10
+        }
+      ]
+    },
+    {
+      "keyword": "ai referral traffic",
+      "search_volume": 20,
+      "monthly_searches": [
+        {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 50
+        },
+        {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 30
+        },
+        {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 20
+        },
+        {
+          "year": 2025,
+          "month": 9,
+          "search_volume": 20
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "search_volume": 10
+        }
+      ]
+    },
+    {
+      "keyword": "ai crawler analytics",
+      "search_volume": null,
+      "monthly_searches": null
+    },
+    {
+      "keyword": "cloudflare ai analytics",
+      "search_volume": 10,
+      "monthly_searches": [
+        {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 0
+        },
+        {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 9,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "search_volume": 10
+        }
+      ]
+    },
+    {
+      "keyword": "track ai bots",
+      "search_volume": null,
+      "monthly_searches": null
+    },
+    {
+      "keyword": "wordpress ai traffic",
+      "search_volume": null,
+      "monthly_searches": null
+    },
+    {
+      "keyword": "wordpress bot tracking",
+      "search_volume": null,
+      "monthly_searches": null
+    },
+    {
+      "keyword": "shopify ai traffic",
+      "search_volume": null,
+      "monthly_searches": null
+    },
+    {
+      "keyword": "chatgpt referral traffic",
+      "search_volume": 10,
+      "monthly_searches": [
+        {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 9,
+          "search_volume": 20
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "search_volume": 30
+        }
+      ]
+    },
+    {
+      "keyword": "ai agents seo",
+      "search_volume": 90,
+      "monthly_searches": [
+        {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 50
+        },
+        {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 40
+        },
+        {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 90
+        },
+        {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 30
+        },
+        {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 40
+        },
+        {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 70
+        },
+        {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 140
+        },
+        {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 210
+        },
+        {
+          "year": 2025,
+          "month": 9,
+          "search_volume": 260
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "search_volume": 90
+        }
+      ]
+    },
+    {
+      "keyword": "ai content audit",
+      "search_volume": 10,
+      "monthly_searches": [
+        {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 9,
+          "search_volume": 10
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "search_volume": 10
+        }
+      ]
+    },
+    {
+      "keyword": "markdown for ai agents",
+      "search_volume": 10,
+      "monthly_searches": [
+        {
+          "year": 2026,
+          "month": 7,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 6,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 5,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 4,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 3,
+          "search_volume": 20
+        },
+        {
+          "year": 2026,
+          "month": 2,
+          "search_volume": 10
+        },
+        {
+          "year": 2026,
+          "month": 1,
+          "search_volume": 0
+        },
+        {
+          "year": 2025,
+          "month": 12,
+          "search_volume": 0
+        },
+        {
+          "year": 2025,
+          "month": 11,
+          "search_volume": 0
+        },
+        {
+          "year": 2025,
+          "month": 10,
+          "search_volume": 0
+        },
+        {
+          "year": 2025,
+          "month": 9,
+          "search_volume": 0
+        },
+        {
+          "year": 2025,
+          "month": 8,
+          "search_volume": 0
+        }
+      ]
+    },
+    {
+      "keyword": "llms.txt",
+      "search_volume": null,
+      "monthly_searches": null
+    },
+    {
+      "keyword": "ai agent feedback",
+      "search_volume": null,
+      "monthly_searches": null
+    },
+    {
+      "keyword": "how to track ai traffic",
+      "search_volume": null,
+      "monthly_searches": null
+    }
+  ],
+  "task_status": "Ok."
+}

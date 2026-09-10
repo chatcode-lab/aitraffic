@@ -1,0 +1,42 @@
+---
+import '../styles/global.css';
+import Mark from '../components/Mark.astro';
+import { site, markdownPath, type Page } from '../lib/registry';
+interface Props { page: Page; noindex?: boolean }
+const {page, noindex = false} = Astro.props;
+const canonical = site.url + page.path;
+const schema = page.kind === 'guide' ? {
+ '@context':'https://schema.org', '@type':'Article', headline:page.title, description:page.description,
+ datePublished:page.publishedAt, dateModified:page.updatedAt, mainEntityOfPage:canonical,
+ author:{'@type':'Organization',name:site.publisher,url:site.url+'/how-it-works'},
+ publisher:{'@type':'Organization',name:site.publisher,url:site.url}, image:site.url+'/social.png'
+} : {'@context':'https://schema.org','@type':page.kind === 'home' ? 'WebSite' : 'WebPage', name:page.seoTitle, description:page.description,url:canonical};
+---
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{page.seoTitle}</title><meta name="description" content={page.description}/>
+  <link rel="canonical" href={canonical}/><link rel="alternate" type="text/markdown" href={site.url+markdownPath(page.path)} title="Markdown"/>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  {noindex && <meta name="robots" content="noindex, follow"/>}
+  <meta name="theme-color" content="#f8f8f0"/>
+  <meta property="og:type" content={page.kind === 'guide' ? 'article' : 'website'}/><meta property="og:title" content={page.seoTitle}/><meta property="og:description" content={page.description}/><meta property="og:url" content={canonical}/><meta property="og:site_name" content={site.name}/>
+  <meta property="og:image" content={site.url+'/social.png'}/><meta property="og:image:width" content="1200"/><meta property="og:image:height" content="630"/><meta property="og:image:alt" content="AI Traffic Analytic — Understand your AI traffic."/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <script is:inline type="application/ld+json" set:html={JSON.stringify(schema).replace(/</g,'\\u003c')}/>
+ </head>
+ <body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header container">
+   <a class="wordmark" href="/" aria-label="AI Traffic Analytic home"><Mark/><span>AI Traffic <strong>Analytic</strong><small>A FIELD GUIDE TO THE AGENT WEB</small></span></a>
+   <nav aria-label="Main navigation"><a href="/guides" aria-current={page.kind === 'guide' || page.kind === 'collection' ? 'page' : undefined}>Guides</a><a href="/live-lab" aria-current={['lab','test'].includes(page.kind) ? 'page' : undefined}><span class="dot" aria-hidden="true"/>Live Lab</a><a href="/how-it-works" aria-current={page.id === 'how-it-works' ? 'page' : undefined}>How It Works</a></nav>
+  </header>
+  <main id="main" class="container"><slot/></main>
+  <footer class="site-footer container">
+   <div><a class="footer-name" href="/">AI Traffic Analytic <span aria-hidden="true">↗</span></a><p>Understanding a web with more than human readers.</p><p class="small">An independent experiment. Built in the open.</p></div>
+   <nav aria-label="Footer navigation"><a href="/methodology">Methodology</a><a href="/privacy">Privacy</a><a href="/ai">For agents</a><a href={site.repository}>Source code ↗</a></nav>
+   <div class="footer-bottom"><span>© 2026 AI Traffic Analytic</span><span>Useful content. Observable evidence.</span></div>
+  </footer>
+ </body>
+</html>

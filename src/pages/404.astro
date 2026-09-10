@@ -1,0 +1,6 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { pages } from '../lib/registry';
+const page={...pages[0],path:'/404',title:'This page is not in the field guide.',seoTitle:'Page Not Found | AI Traffic Analytic',kind:'error',description:'The requested page does not exist. Return to the guides or the live lab.'};
+---
+<Layout page={page} noindex><header class="page-header"><div class="eyebrow">404 / NOT FOUND</div><h1>{page.title}</h1><p class="lede">The address may be incorrect, or the page may have moved.</p><div class="actions"><a class="button" href="/guides">Explore the guides →</a><a href="/">Return home</a></div></header></Layout>

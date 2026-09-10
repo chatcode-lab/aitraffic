@@ -1,0 +1,39 @@
+{
+  "name": "aitraffic",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0",
+    "check": "astro check && tsc -p tsconfig.worker.json --noEmit",
+    "build": "astro build && node scripts/build-discovery.mjs",
+    "preview:worker": "wrangler dev --ip 0.0.0.0 --host localhost --port 8787 --log-level error",
+    "test": "tsx --test tests/unit/*.test.ts",
+    "test:e2e": "playwright test",
+    "validate:content": "node scripts/validate-content.mjs",
+    "deploy": "npm run build && wrangler deploy",
+    "moderate": "node scripts/moderate.mjs",
+    "performance": "node scripts/performance.mjs",
+    "smoke:live": "node scripts/smoke-live.mjs"
+  },
+  "dependencies": {
+    "astro": "7.3.2"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@axe-core/playwright": "4.13.0",
+    "@cloudflare/workers-types": "5.20260910.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.2",
+    "gray-matter": "4.0.3",
+    "lighthouse": "13.4.1",
+    "marked": "18.0.12",
+    "sharp": "0.35.4",
+    "tsx": "4.23.13",
+    "typescript": "6.0.3",
+    "wrangler": "4.131.0"
+  }
+}

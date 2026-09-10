@@ -1,0 +1,15 @@
+import {chromium} from '@playwright/test';
+import {mkdir} from 'node:fs/promises';
+import {existsSync} from 'node:fs';
+import {resolve} from 'node:path';
+const localLibs=resolve('artifacts/browser-deps/root/usr/lib/x86_64-linux-gnu');
+const browser=await chromium.launch({headless:true,...existsSync(localLibs)?{env:{...process.env,LD_LIBRARY_PATH:localLibs+(process.env.LD_LIBRARY_PATH?':'+process.env.LD_LIBRARY_PATH:'')}}:{}});
+await mkdir('artifacts',{recursive:true});
+const context=await browser.newContext({extraHTTPHeaders:{'X-AITraffic-Test':'1'},javaScriptEnabled:false,viewport:{width:1440,height:1100}});
+const page=await context.newPage();
+const base=process.env.PREVIEW_URL||'http://localhost:8787';
+await page.goto(base+'/');await page.screenshot({path:'artifacts/home-desktop.png',fullPage:true});
+await page.setViewportSize({width:390,height:844});await page.screenshot({path:'artifacts/home-mobile.png',fullPage:true});
+await page.goto(base+'/guides/measure-ai-traffic');await page.screenshot({path:'artifacts/guide-mobile.png',fullPage:true});
+await page.setViewportSize({width:1440,height:1100});await page.goto(base+'/live-lab');await page.screenshot({path:'artifacts/lab-desktop.png',fullPage:true});
+await browser.close();console.log('Captured four views with JavaScript disabled and test traffic excluded. No feedback capabilities captured.');

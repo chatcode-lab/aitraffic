@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "aitraffic",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-10",
+  "workers_dev": true,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "aitrafficanalytic.com", "custom_domain": true },
+    { "pattern": "www.aitrafficanalytic.com", "custom_domain": true }
+  ],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "none",
+    "not_found_handling": "none"
+  },
+  "durable_objects": { "bindings": [{ "name": "LAB", "class_name": "TrafficLab" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["TrafficLab"] }],
+  "observability": { "enabled": false },
+  "vars": { "RETENTION_DAYS": "31", "FEEDBACK_RETENTION_DAYS": "90", "TOKEN_TTL_SECONDS": "1800" }
+}

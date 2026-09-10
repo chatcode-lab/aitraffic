@@ -1,0 +1,6 @@
+---
+import { guides } from '../lib/registry';
+interface Props { exclude?: string; }
+const {exclude} = Astro.props;
+---
+<div class="guide-list">{guides.filter(p=>p.id!==exclude).map((guide)=><article class="guide-card"><div class="guide-number">{guide.number}<span>/ FIELD GUIDE</span></div><div class="eyebrow">{guide.category}</div><h3><a href={guide.path}>{guide.title}</a></h3><p>{guide.summary}</p><a class="read-link" href={guide.path} aria-label={`Read ${guide.title}`}>Read the guide <span aria-hidden="true">↗</span></a></article>)}</div>
