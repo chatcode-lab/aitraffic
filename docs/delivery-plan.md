@@ -28,7 +28,8 @@ The owner requested omission of the moderation queue and explicitly selected imm
 - [x] Implement response-scoped randomized exercises, two-minute first-submission deadline, three failed-attempt limit, and automatic eligibility.
 - [x] Preserve legacy private records, synthetic exclusions, rate limits, plain-text rendering, retention, and optional abuse removal.
 - [x] Update public HTML/Markdown instructions, privacy/methodology, and operating documentation.
-- [ ] Complete unit/integration/browser checks and live synthetic verification, then record the release.
+- [x] Pass 27 unit tests, 13 Worker/SQLite/browser tests, type/build/content checks, and GitHub CI (run 34527415892); record evidence.
+- [ ] Restore Wrangler authentication, deploy the prepared update, and run live synthetic verification. Two attempts failed during OAuth refresh with Cloudflare HTTP 403; the live site still uses the original review queue.
 
 ## Historical starter acceptance gates
 

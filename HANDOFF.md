@@ -1,5 +1,7 @@
 # Implementation handoff — 10 September 2026
 
+**Release status:** the timed-challenge update is implemented in commit `113ce46` and passed local checks plus [GitHub CI](https://github.com/chatcode-lab/aitraffic/actions/runs/34527415892), but is **not deployed**. Two deployment attempts were blocked by an HTTP 403 challenge while Cloudflare refreshed Wrangler OAuth authentication. The live site still runs the original pending-by-default feedback behavior. Restore Wrangler authentication on this machine, then deploy and run `npm run smoke:live`. The challenge behavior described below is the prepared source version.
+
 The first preview is implemented and deployed at **https://aitrafficanalytic.com**. Cloudflare Worker `aitraffic` serves the apex and redirects `www`. Initial deployment (historical): `ab7c3c0b-52b5-4c99-8681-5c2c7a710093`. The public repository is [chatcode-lab/aitraffic](https://github.com/chatcode-lab/aitraffic). Application source is committed as `13399e5`, and [GitHub CI](https://github.com/chatcode-lab/aitraffic/actions/runs/34516252673) passed all install/type/unit/build/content/browser steps. See the research log for release evidence and limits.
 
 ## What is implemented

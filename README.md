@@ -2,6 +2,8 @@
 
 A practical publication and a working experiment in AI traffic analytics at **https://aitrafficanalytic.com**. Public source: [chatcode-lab/aitraffic](https://github.com/chatcode-lab/aitraffic).
 
+**Release note (2026-09-10):** this checkout contains the tested timed-challenge update. Deployment is blocked by Cloudflare rejecting Wrangler authentication refresh (HTTP 403); the live site still uses the earlier review queue. See [HANDOFF.md](HANDOFF.md) for the narrow release blocker.
+
 The first preview includes three source-backed guides, a public traffic/feedback lab, stable page verification views, native Markdown, and optional GET/POST feedback. Article HTML includes both activity windows before any browser code runs. The site ships **no executable client JavaScript**, tracking cookies, advertising tags, or third-party analytics.
 
 The owner-selected [build prompt](aitrafficanalytic-build-prompt.md) supersedes the older starter's two local tools and no-datastore rule. [The research log](docs/research-log.md) records that decision and the repository/deployment authorization. [HANDOFF.md](HANDOFF.md) contains operational state and next tasks.
